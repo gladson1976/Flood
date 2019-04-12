@@ -1,0 +1,259 @@
+<div class="burst-12" *ngIf="newHighscore" (click)="this.newHighscore = false"></div>
+<div class="flood-title title-border">
+  <table class="flood-title">
+    <tr>
+      <td class="title" [attr.colspan]="floodSize/2">
+        <span>Flood</span>
+      </td>
+      <td class="title text-right" [attr.colspan]="floodSize/2">
+        <span class="fa fa-refresh title-button cursor-pointer" (click)="startNewFlood()"></span>
+        <span class="fa fa-gears title-button cursor-pointer" (click)="showSettings()"></span>
+        <span class="fa fa-bar-chart title-button cursor-pointer" (click)="showHighscore()"></span>
+        <span class="fa fa-question title-button cursor-pointer" (click)="showHelp()"></span>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="flood-title">
+  <table class="flood-title">
+    <tr>
+      <td class="flood-message" [attr.colspan]="floodSize/2">
+        <span>{{floodMessage}}</span>
+      </td>
+      <td class="flood-message text-right" [attr.colspan]="floodSize/2">
+        <!-- <span class="title-button paint-bucket" [style.background-color]="getColor(floodColor)"></span> -->
+        <span>{{floodMoves}} / {{maxMoves}}</span>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="flood-container">
+  <table class="flood-container" [ngClass]="{'cell-borders': display.floodBorders}">
+    <tr *ngFor="let row of arrFlood">
+      <td *ngFor="let col of row" class="flood" [style.background-color]="getColor(col.cellColor)" [style.width]="display.floodCellSize"
+        [style.height]="display.floodCellSize"></td>
+    </tr>
+  </table>
+</div>
+<div class="flood-footer">
+  <table class="flood-footer" [ngClass]="{'cell-borders': display.floodBorders}">
+    <tr>
+      <td class="flood-palette" *ngFor="let palette of arrColors; let i = index" [style.background-color]="getColor(i)" [style.width]="display.floodKeySize"
+        [style.height]="display.floodKeySize" (click)="startFlooding(i)"></td>
+    </tr>
+  </table>
+</div>
+
+<ng-template #popupSettings let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Options</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <table class="settings-table">
+      <tr>
+        <td>Grid Size</td>
+        <td class="text-right">
+          <div ngbDropdown class="d-inline-block" placement="bottom-right">
+            <button type="button" class="btn btn-sm btn-white" id="gridDropdown" ngbDropdownToggle>
+              <span>{{arrDifficulty[selectedDifficulty].difficultyName}}</span>
+              <span class="font-small">({{arrDifficulty[selectedDifficulty].gridSize}}x{{arrDifficulty[selectedDifficulty].gridSize}})</span>
+            </button>
+            <div ngbDropdownMenu aria-labelledby="gridDropdown">
+              <div class="dropdown-item" href="#" *ngFor="let difficulty of arrDifficulty; let i = index" (click)="setDifficulty(i)">
+                <span class="flood-font text-left cursor-pointer" (click)="setDifficulty(i)">{{difficulty.difficultyName}}</span>
+                <span class="font-small text-right">{{difficulty.gridSize}}x{{difficulty.gridSize}} / {{difficulty.maxMoves}}</span>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Borders</td>
+        <td class="text-right va-middle">
+          <input type="checkbox" name="borders" id="borders" [(ngModel)]="display.floodBorders" [value]="true" (change)="setBorders()">
+        </td>
+      </tr>
+      <tr>
+        <td class="va-top">Palette</td>
+        <td class="text-right">
+          <div ngbDropdown class="d-inline-block" placement="bottom-right">
+            <button type="button" class="btn btn-sm btn-white text-right" id="paletteDropdown" ngbDropdownToggle>
+              <span class="palette">
+                {{floodPalette[selectedPalette].name}}
+                <br>
+                <span *ngFor="let color of floodPalette[selectedPalette].colours" class="va-t-bottom cell-color" [style.background-color]="color"></span>
+              </span>
+            </button>
+            <div ngbDropdownMenu aria-labelledby="paletteDropdown" class="scrollable-menu">
+              <div class="dropdown-item" href="#" *ngFor="let palette of floodPalette; let i = index" (click)="setPalette(i)">
+                <div class="flood-font text-left cursor-pointer w-50 inline-block">{{palette.name}}</div>
+                <div class="palette font-small text-right w-50 inline-block">
+                  <span *ngFor="let color of palette.colours" class="cell-color cursor-pointer" [style.background-color]="color"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</ng-template>
+
+<ng-template #popupConfirm let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Flood</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    {{floodPopupMessage}}
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-primary" (click)="c('Y')">Yes</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="d('N')">No</button>
+  </div>
+</ng-template>
+
+<ng-template #popupHighscore let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Flood - Stats</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <table class="settings-table">
+      <tr class="text-center font-bold">
+        <td class="text-left">Board Size</td>
+        <td>Best Score</td>
+        <td>Won</td>
+        <td>Played</td>
+      </tr>
+      <tr class="text-center" *ngFor="let highscore of arrDifficulty; let i = index">
+        <td class="text-left">{{highscore.difficultyName}}</td>
+        <td>{{persistData.floodStats.scores[i]}}</td>
+        <td>{{persistData.floodStats.won[i]}}</td>
+        <td>{{persistData.floodStats.played[i]}}</td>
+      </tr>
+      <tr>
+        <td colspan="4" class="text-right p-top-10">
+          <button type="button" class="btn btn-outline-danger" (click)="resetStats()">Reset Stats</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+</ng-template>
+
+<ng-template #popupHelp let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Flood - Info</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <table class="settings-table">
+      <tr>
+        <td>
+          <div class="font-bold">Flood v1.1</div>
+          <div>Developed by</div>
+          <div>Prabhu Thomas</div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="font-bold">Objective and Instructions</div>
+          <ul class="list-unstyled">
+            <li>Fill the board down to a single color starting at the top left corner.</li>
+            <li>Tap a color from the colors at the bottom to fill it onto your area and merge it with all neighbouring cells
+              of same color.</li>
+            <li>Keep doing it until you fill the entire board with a single color.</li>
+            <li>
+              <span class="help-img help-img-1"></span>
+              <span class="help-img help-img-2"></span>
+              <span class="help-img help-img-3"></span>
+              <span class="help-img help-img-4"></span>
+            </li>
+            <li>
+              <span class="help-img-key help-img-key-0"></span>
+              <span class="help-img-key help-img-key-5"></span>
+              <span class="help-img-key help-img-key-4"></span>
+              <span class="help-img-key help-img-key-6"></span>
+            </li>
+            <li>
+              <span class="help-img help-img-5"></span>
+              <span class="help-img help-img-6"></span>
+              <span class="help-img help-img-7"></span>
+              <span class="help-img help-img-8"></span>
+            </li>
+            <li>
+              <span class="help-img-key help-img-key-3"></span>
+              <span class="help-img-key help-img-key-2"></span>
+              <span class="help-img-key help-img-key-1"></span>
+              <span class="help-img-key help-img-key-5"></span>
+            </li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="4" class="text-right p-top-10">
+          <button type="button" class="btn btn-outline-primary" (click)="showTutorial()">Tutorial</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+</ng-template>
+
+<ng-template #popupTutorial let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Flood - Tutorial</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <table>
+      <tr class="font-bold">
+        <td class="text-right">{{floodTutorialMove+1}} / 8</td>
+        <td></td>
+      </tr>
+      <tr class="text-center">
+        <td>
+          <table class="tutorial-table flood-container" [ngClass]="{'tutorial-borders': display.floodBorders}">
+            <tr *ngFor="let row of floodTutorial.arrFlood">
+              <td *ngFor="let col of row" class="flood tutorial-cell" [style.background-color]="getColor(col.cellColor)" [style.width]="display.floodCellSize"
+                [style.height]="display.floodCellSize"></td>
+            </tr>
+          </table>
+        </td>
+        <td class="va-top text-left p-left-2" rowspan="2">
+          <div>{{floodTutorialMessage}}</div>
+          <div>
+            <button type="button" *ngIf="floodTutorialMove === 6" class="btn btn-outline-primary m-top-2" (click)="showTutorial()">Play Again</button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="text-center p-top-1">
+          <table>
+            <tr>
+              <td class="tutorial-palette" *ngFor="let palette of arrColors; let i = index">
+                <span class="fa fa-hand-pointer-o fa-rotate-180 animate-up-down" *ngIf="i === floodTutorial.tutorialMoves[floodTutorialMove+1]"></span>
+              </td>
+            </tr>
+          </table>
+          <table [ngClass]="{'tutorial-borders': display.floodBorders}">
+            <tr>
+              <td class="tutorial-palette" *ngFor="let palette of arrColors; let i = index" [style.background-color]="getColor(i)" [ngClass]="{'tutorial-palette-select': i === floodTutorial.tutorialMoves[floodTutorialMove+1]}"
+                (click)="startTutorialFlooding(i)"></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</ng-template>

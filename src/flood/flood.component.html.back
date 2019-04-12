@@ -1,0 +1,79 @@
+<div class="container-fluid">
+  <div class="row vertical-align">
+    <div class="col-6">
+      <h1>Flood</h1>
+    </div>
+    <div class="col-6 text-right">
+      <span class="fa fa-refresh title-button cursor-pointer" (click)="startNewFlood()"></span>
+      <span class="fa fa-gears title-button cursor-pointer" (click)="showSettings()"></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col"><hr></div>
+  </div>
+  <div class="row">
+    <!-- <div class="col-1"></div> -->
+    <div class="col-sm-auto">
+      <div class="row" *ngFor="let row of arrFlood">
+        <div class="col" *ngFor="let col of row" [style.background-color]="getColor(col.cellColor)" [style.color]="getColor(col.cellColor)">
+          <div style="padding-bottom: 100%;">.</div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+  </div>
+  <div class="row">
+    <div class="col"><hr></div>
+  </div>
+  <div class="row">
+    <!-- <div class="col-1"></div> -->
+    <div class="col" *ngFor="let palette of arrColors; let i = index" [style.background-color]="getColor(i)" (click)="startFlooding(i)" [style.color]="getColor(i)">
+      <div style="padding-bottom: 100%;">.</div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+  </div>
+  <div class="row">
+    <div class="col"><hr></div>
+  </div>
+  <div class="row">
+    <div class="col"><span>{{floodMessage}}</span></div>
+    <div class="col text-right"><span>{{floodMoves}} / {{maxMoves}}</span></div>
+  </div>
+</div>
+<!-- 
+<div class="flood-container">
+  <table class="flood-border">
+    <tr>
+      <td class="title" [attr.colspan]="floodSize/2">
+        <span>Flood</span>
+      </td>
+      <td class="title text-right" [attr.colspan]="floodSize/2">
+        <div class="inline-block">
+          <span class="fa fa-refresh title-button cursor-pointer" (click)="startNewFlood()"></span>
+          <span class="fa fa-gears title-button cursor-pointer" (click)="showSettings()"></span>
+        </div>
+      </td>
+    </tr>
+    <tr *ngFor="let row of arrFlood; let i = index">
+      <td *ngFor="let col of row; let j = index" class="flood" [style.background-color]="getColor(col.cellColor)">
+      </td>
+    </tr>
+    <tr>
+      <td class="footer" [attr.colspan]="floodSize/2">
+        <span>{{floodMessage}}</span>
+      </td>
+      <td class="footer text-right" [attr.colspan]="floodSize/2">
+        <span>{{floodMoves}} / {{maxMoves}}</span>
+      </td>
+    </tr>
+  </table>
+</div>
+<div class="flood-container va-bottom">
+  <table class="flood-border">
+    <tr *ngFor="let palette of arrColors; let i = index">
+      <td class="flood-palette" [style.background-color]="getColor(i)" (click)="startFlooding(i)">
+      </td>
+    </tr>
+  </table>
+</div>
+-->
